@@ -1,0 +1,39 @@
+version: '3.4'
+services:
+
+  wordpress:
+    image: wordpress:latest # https://hub.docker.com/_/wordpress/
+    ports:
+      - 127.0.0.1:4800:4800
+    volumes:
+      - ./config/php.conf.uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+      - ./wp-app:/var/www/html # Full wordpress project
+    environment:
+      WORDPRESS_DB_HOST: mariadb
+      WORDPRESS_DB_NAME: mariadb
+      WORDPRESS_DB_USER: root
+      WORDPRESS_DB_PASSWORD: mariadbropa
+    depends_on:
+      - mariadb
+    networks:
+      - backend
+      - frontend
+      
+  mariadb:
+    image: mariadb:10.2
+    environment:
+      MYSQL_ROOT_PASSWORD: mariadbropa
+      MYSQL_DATABASE: mariadb
+      MYSQL_USER: mariadb
+      MYSQL_PASSWORD: mariadbpa
+    networks:
+      - backend
+    restart: on-failure
+    volumes:
+     - ${PWD}/mariadb:/var/lib/mysql
+
+networks:
+  frontend:
+    driver: bridge         
+  backend:
+    driver: bridge
