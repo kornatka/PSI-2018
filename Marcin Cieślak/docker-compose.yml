@@ -11,8 +11,8 @@ services:
             volumes_from:
                         - app-data
             environment:
-                        - WORDPRESS_DB_
-                        - WORDPRESS_DB_HOST= 192.168.1.102:3306
+                        - WORDPRESS_DB_DATABASE = bazaMarcin
+                        - WORDPRESS_DB_HOST= mysql:3306
                         - WORDPRESS_DB_PASSWORD= Cieslak
                         - WORDPRESS_DB_USER= Marcin
             networks: 
