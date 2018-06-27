@@ -12,12 +12,12 @@ services:
                         - app-data
             environment:
                         - WORDPRESS_DB_
-                        - WORDPRESS_DB_HOST= 192.168.1.102:3306
+                        - WORDPRESS_DB_HOST= 192.168.2.102:3306
                         - WORDPRESS_DB_PASSWORD= Cieslak
                         - WORDPRESS_DB_USER= Marcin
             networks: 
                   marcin_network:
-                        ipv4_address: 192.168.1.101
+                        ipv4_address: 192.168.2.101
       mysql:
             image: mysql:5.6
             container_name: mysql
@@ -30,7 +30,7 @@ services:
                   MYSQL_PASSWORD: Cieslak
             networks: 
                  marcin_network:
-                        ipv4_address: 192.168.1.102
+                        ipv4_address: 192.168.2.102
             restart: always
       mysql-data:
             image: mysql:5.6
@@ -39,7 +39,7 @@ services:
                          - ./volumes/db:/var/lib/mysql
             networks: 
                   marcin_network:
-                        ipv4_address: 192.168.1.103
+                        ipv4_address: 192.168.2.103
             command: "true"
       app-data:
             build: ./app-data/
@@ -49,7 +49,7 @@ services:
                         - /var/www/html/
             networks: 
                   marcin_network:
-                        ipv4_address: 192.168.1.104
+                        ipv4_address: 192.168.2.104
             command: "true"  
 networks:
       marcin_network:
@@ -57,4 +57,4 @@ networks:
             ipam:
                   driver: default
                   config: 
-                        - subnet: 192.168.1.100/24
+                        - subnet: 192.168.2.100/24
