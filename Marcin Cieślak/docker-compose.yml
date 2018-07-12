@@ -1,54 +1,60 @@
-#Marcin Cieślak (c) PSI 2018
-# Wersja pliku docker-compose
 version: '2'
-
-# Servisy które będą budowane w pliku
 services:
-
-	# Obraz wordpress ( apache2 + php + pliki wordpress )
-        wordpress:
-                image: wordpress:4.5
-                container_name: wordpress-container
-                depends_on:
-                        - db
-                links:
-                        - db:mysql
-                ports:
+      apache:
+            build: ./apache/
+            hostname: apache
+            container_name: apache-server
+            ports: 
                         - 80:80
-                environment:
-                        WORDPRESS_DB_HOST: db:3306
-                        WORDPRESS_DB_PASSWORD: wordpress
-                        WORDPRESS_DB_USER: wordpress
-                restart: always
-			
-	# Obraz bazy danych mariad do połączenia z kontenerem wordpress 
-        db:
-                image: mariadb:10.1
-                container_name: mariadb-server
-                volumes_from:
-                        - db-data
-                environment:
-                        MYSQL_ROOT_PASSWORD: example
-                        MYSQL_DATABASE: wordpress
-                        MYSQL_USER: wordpress
-                        MYSQL_PASSWORD: wordpress
-                restart: always
-
-	# Storage dla danych z bazy danych
-        db-data:
-                image: mariadb:10.1
-                container_name: mariadb-data
-                volumes:
-                        - ./volumes/db:/var/lib/myslq
-                command: "true"
-
-	# PhpMyAdmin do zarządzania bazą danych 
-        phpmyadmin:
-                image: phpmyadmin/phpmyadmin
-                container_name: phpmyadmin-container
-                ports:
-                        - 8080:80
-                links:
-                        - db
-                environment:
-                        PMA_HOST: db
+            links:
+                        - mysql
+            volumes_from:
+                        - app-data
+            environment:
+                        - WORDPRESS_DB_
+                        - WORDPRESS_DB_HOST= 192.168.2.102:3306
+                        - WORDPRESS_DB_PASSWORD= Cieslak
+                        - WORDPRESS_DB_USER= Marcin
+            networks: 
+                  marcin_network:
+                        ipv4_address: 192.168.2.101
+      mysql:
+            image: mysql:5.6
+            container_name: mysql
+            volumes_from:
+                        - mysql-data
+            environment:
+                  MYSQL_ROOT_PASSWORD: wsinf
+                  MYSQL_DATABASE: bazaMarcin
+                  MYSQL_USER: Marcin
+                  MYSQL_PASSWORD: Cieslak
+            networks: 
+                 marcin_network:
+                        ipv4_address: 192.168.2.102
+            restart: always
+      mysql-data:
+            image: mysql:5.6
+            container_name: mysql-data
+            volumes:
+                         - ./volumes/db:/var/lib/mysql
+            networks: 
+                  marcin_network:
+                        ipv4_address: 192.168.2.103
+            command: "true"
+      app-data:
+            build: ./app-data/
+            hostname: app-data
+            container_name: app_data
+            volumes:
+                        - /var/www/html/
+            networks: 
+                  marcin_network:
+                        ipv4_address: 192.168.2.104
+            command: "true"  
+networks:
+      marcin_network:
+            driver: bridge
+            ipam:
+                  driver: default
+                  config: 
+                        - subnet: 192.168.2.100/24
