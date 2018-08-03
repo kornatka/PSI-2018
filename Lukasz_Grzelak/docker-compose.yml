@@ -1,37 +1,66 @@
 version: '3.4'
 services:
 
-  wordpress1:
+  wordpress:
     image: wordpress:latest
-    container_name: wordpress1
+    container_name: wordpress
     ports:
       - 8000:80
     environment:
-      WORDPRESS_DB_HOST: mariadb1
-      WORDPRESS_DB_NAME: mariadb1
+      WORDPRESS_DB_HOST: mariadb-master
+      WORDPRESS_DB_NAME: mariadb-master
       WORDPRESS_DB_USER: root
-      WORDPRESS_DB_PASSWORD: mariadbropa
+      WORDPRESS_DB_PASSWORD: mariadbropass
     depends_on:
-      - mariadb1
+      - mariadb-master
     networks:
       - web
     restart: always
       
-  mariadb1:
-    image: mariadb:10.2
-    container_name: mariadb1
+  mariadb-master:
+    image: bitnami/mariadb:latest
+    container_name: mariadb-master
     ports:
-      - 8010:3306
+      - 3306
     environment:
-      MYSQL_ROOT_PASSWORD: mariadbropa
-      MYSQL_DATABASE: mariadb1
-      MYSQL_USER: mariadb
-      MYSQL_PASSWORD: mariadbpa
+      MARIADB_ROOT_PASSWORD: mariadbropass
+      MARIADB_DATABASE: mariadb-master
+      MARIADB_USER: mariadbuser
+      MARIADB_PASSWORD: mariadbpass
+      MARIADB_REPLICATION_MODE: master
+      MARIADB_REPLICATION_USER: mariadbrepuser
+      MARIADB_REPLICATION_PASSWORD: mariadbreppass
+    depends_on:
+     - fix-mariadb-permissions
     networks:
       - web
     restart: always
     volumes:
-     - ${PWD}/mariadb:/var/lib/mysql
+     - /tmp/data/mysql:/bitnami
+     
+  mariadb-slave:
+    image: bitnami/mariadb:latest
+    ports:
+      - 3306
+    environment:
+      MARIADB_REPLICATION_MODE: slave
+      MARIADB_REPLICATION_USER: mariadbrepuser
+      MARIADB_REPLICATION_PASSWORD: mariadbreppass
+      MARIADB_MASTER_HOST: mariadb-master
+      MARIADB_MASTER_PORT_NUMBER: 3306
+      MARIADB_MASTER_ROOT_PASSWORD: mariadbropass
+    depends_on:
+      - mariadb-master
+    networks:
+      - web
+    restart: always
+    
+  fix-mariadb-permissions:
+    image: 'bitnami/mariadb:latest'
+    user: root
+    command: chown -R 1001:1001 /bitnami
+    volumes:
+      - /tmp/data/mysql:/bitnami
 
 networks:
   web:
