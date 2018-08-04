@@ -8,7 +8,7 @@ Vagrant.configure("2") do |config|
   config.vm.network "forwarded_port", guest: 8000, host: 8000
   
   config.vm.provider :virtualbox do |v|
-    v.customize ["modifyvm", :id, "--memory", 2048]
+    v.customize ["modifyvm", :id, "--memory", 4096]
   end
 
   config.vm.provision "shell", inline: <<-SHELL
@@ -16,11 +16,13 @@ Vagrant.configure("2") do |config|
 	  sudo apt-get upgrade -y
 	  sudo curl -fsSL get.docker.com -o get-docker.sh
       sudo sh get-docker.sh
-	  sudo curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+	  sudo curl -L https://github.com/docker/compose/releases/download/1.22.0/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
 	  sudo chmod +x /usr/local/bin/docker-compose
 	  sudo mkdir /docker
 	  sudo cp /shared/docker-compose.yml /docker/docker-compose.yml
 	  cd /docker
-	  sudo docker-compose up --scale mariadb-master=1 --scale mariadb-slave=3 -d
+	  #sudo docker-compose up --scale mariadb-master=1 --scale mariadb-slave=3 -d
+	  sudo docker swarm init
+	  sudo docker stack deploy --compose-file=docker-compose.yml prod
   SHELL
 end

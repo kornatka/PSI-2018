@@ -1,25 +1,53 @@
 version: '3.4'
 services:
 
-  wordpress:
-    image: wordpress:latest
-    container_name: wordpress
+  proxy:
+    image: dockercloud/haproxy
+    depends_on:
+      - wordpress
+    environment:
+      BALANCE: leastconn
     ports:
       - 8000:80
+    networks:
+      - web
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: any
+        delay: 30s
+      placement:
+        constraints:
+        - node.role == manager
+        
+  wordpress:
+    image: wordpress:latest
+    ports:
+      - 8080:80
     environment:
       WORDPRESS_DB_HOST: mariadb-master
       WORDPRESS_DB_NAME: mariadb-master
       WORDPRESS_DB_USER: root
       WORDPRESS_DB_PASSWORD: mariadbropass
+      SERVICE_PORTS: 8080
     depends_on:
       - mariadb-master
     networks:
       - web
-    restart: always
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: any
+        delay: 30s
       
   mariadb-master:
     image: bitnami/mariadb:latest
-    container_name: mariadb-master
     ports:
       - 3306
     environment:
@@ -30,13 +58,17 @@ services:
       MARIADB_REPLICATION_MODE: master
       MARIADB_REPLICATION_USER: mariadbrepuser
       MARIADB_REPLICATION_PASSWORD: mariadbreppass
-    depends_on:
-     - fix-mariadb-permissions
     networks:
       - web
-    restart: always
-    volumes:
-     - /tmp/data/mysql:/bitnami
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: any
+        delay: 30s
+      
      
   mariadb-slave:
     image: bitnami/mariadb:latest
@@ -53,15 +85,16 @@ services:
       - mariadb-master
     networks:
       - web
-    restart: always
-    
-  fix-mariadb-permissions:
-    image: 'bitnami/mariadb:latest'
-    user: root
-    command: chown -R 1001:1001 /bitnami
-    volumes:
-      - /tmp/data/mysql:/bitnami
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 3
+        delay: 10s
+      restart_policy:
+        condition: any
+        delay: 30s
 
 networks:
   web:
-    driver: bridge         
+    driver: overlay
+    
