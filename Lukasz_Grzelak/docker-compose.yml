@@ -10,17 +10,10 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - 8000:80
+      - 8152:80
     networks:
       - web
     deploy:
-      replicas: 1
-      update_config:
-        parallelism: 1
-        delay: 10s
-      restart_policy:
-        condition: any
-        delay: 30s
       placement:
         constraints: [node.role == manager]
         
@@ -33,8 +26,8 @@ services:
     environment:
       - WORDPRESS_DATABASE_HOST=mariadb-master
       - WORDPRESS_DATABASE_NAME=mariadb-master
-      - WORDPRESS_DATABASE_USER=root
-      - WORDPRESS_DATABASE_PASSWORD=mariadbropass
+      - WORDPRESS_DATABASE_USER=mariadbuser
+      - WORDPRESS_DATABASE_PASSWORD=mariadbpass
       - SERVICE_PORTS=8100
       - MARIADB_HOST=mariadb-master
       - MARIADB_PORT_NUMBER=3306
