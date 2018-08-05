@@ -1,4 +1,4 @@
-version: '3.4'
+version: '3.3'
 services:
 
   proxy:
@@ -6,7 +6,9 @@ services:
     depends_on:
       - wordpress
     environment:
-      BALANCE: leastconn
+      - BALANCE=leastconn
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 8000:80
     networks:
@@ -27,13 +29,13 @@ services:
     ports:
       - 8080:80
     environment:
-      WORDPRESS_DATABASE_HOST: mariadb-master
-      WORDPRESS_DATABASE_NAME: mariadb-master
-      WORDPRESS_DATABASE_USER: root
-      WORDPRESS_DATABASE_PASSWORD: mariadbropass
-      SERVICE_PORTS: 8080
-      MARIADB_HOST: mariadb-master
-      MARIADB_PORT_NUMBER: 3306
+      - WORDPRESS_DATABASE_HOST=mariadb-master
+      - WORDPRESS_DATABASE_NAME=mariadb-master
+      - WORDPRESS_DATABASE_USER=root
+      - WORDPRESS_DATABASE_PASSWORD=mariadbropass
+      - SERVICE_PORTS=8080
+      - MARIADB_HOST=mariadb-master
+      - MARIADB_PORT_NUMBER=3306
     depends_on:
       - mariadb-master
     networks:
@@ -52,13 +54,13 @@ services:
     ports:
       - 3306
     environment:
-      MARIADB_ROOT_PASSWORD: mariadbropass
-      MARIADB_DATABASE: mariadb-master
-      MARIADB_USER: mariadbuser
-      MARIADB_PASSWORD: mariadbpass
-      MARIADB_REPLICATION_MODE: master
-      MARIADB_REPLICATION_USER: mariadbrepuser
-      MARIADB_REPLICATION_PASSWORD: mariadbreppass
+      - MARIADB_ROOT_PASSWORD=mariadbropass
+      - MARIADB_DATABASE=mariadb-master
+      - MARIADB_USER=mariadbuser
+      - MARIADB_PASSWORD=mariadbpass
+      - MARIADB_REPLICATION_MODE=master
+      - MARIADB_REPLICATION_USER=mariadbrepuser
+      - MARIADB_REPLICATION_PASSWORD=mariadbreppass
     networks:
       - web
     deploy:
@@ -76,12 +78,12 @@ services:
     ports:
       - 3306
     environment:
-      MARIADB_REPLICATION_MODE: slave
-      MARIADB_REPLICATION_USER: mariadbrepuser
-      MARIADB_REPLICATION_PASSWORD: mariadbreppass
-      MARIADB_MASTER_HOST: mariadb-master
-      MARIADB_MASTER_PORT_NUMBER: 3306
-      MARIADB_MASTER_ROOT_PASSWORD: mariadbropass
+      - MARIADB_REPLICATION_MODE=slave
+      - MARIADB_REPLICATION_USER=mariadbrepuser
+      - MARIADB_REPLICATION_PASSWORD=mariadbreppass
+      - MARIADB_MASTER_HOST=mariadb-master
+      - MARIADB_MASTER_PORT_NUMBER=3306
+      - MARIADB_MASTER_ROOT_PASSWORD=mariadbropass
     depends_on:
       - mariadb-master
     networks:
