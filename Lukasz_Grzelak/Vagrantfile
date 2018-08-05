@@ -5,10 +5,10 @@ Vagrant.configure("2") do |config|
 
   config.vm.synced_folder ".", "/shared"
   
-  config.vm.network "forwarded_port", guest: 8152, host: 8152
+  config.vm.network "forwarded_port", guest: 80, host: 8000
   
   config.vm.provider :virtualbox do |v|
-    v.customize ["modifyvm", :id, "--memory", 4096]
+    v.customize ["modifyvm", :id, "--memory", 8192]
 	v.customize ["modifyvm", :id, "--cpus", 4]
   end
 
