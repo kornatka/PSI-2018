@@ -28,6 +28,8 @@ services:
       
   mariadb-slave:
     image: bitnami/mariadb:latest
+    volumes:
+      - /path/to/mariadb-persistence:/bitnami
     ports:
       - 3306
     environment:
