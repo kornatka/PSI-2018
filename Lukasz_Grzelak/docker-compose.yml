@@ -55,13 +55,13 @@ services:
   wordpress:
     image: wordpress:latest
     ports:
-      - 8080:80
+      - 80
     environment:
       - WORDPRESS_DATABASE_HOST=mariadb-master
       - WORDPRESS_DATABASE_NAME=mariadb-master
       - WORDPRESS_DATABASE_USER=mariadbuser
       - WORDPRESS_DATABASE_PASSWORD=mariadbpass
-      - SERVICE_PORTS=8080
+      - SERVICE_PORTS=80
       - MARIADB_HOST=mariadb-master
       - MARIADB_PORT_NUMBER=3306
     depends_on:
