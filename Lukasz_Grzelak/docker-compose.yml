@@ -6,7 +6,7 @@ services:
     volumes:
       - db_data:/bitnami
     ports:
-      - 3306
+      - 3306:3306
     environment:
       - MARIADB_ROOT_PASSWORD=mariadbropass
       - MARIADB_DATABASE=mariadb-master
@@ -21,10 +21,11 @@ services:
       replicas: 1
       update_config:
         parallelism: 1
-        delay: 5s
+        delay: 10s
       restart_policy:
         condition: on-failure
-        delay: 5s
+        max_attempts: 3
+        window: 120s
       
   mariadb-slave:
     image: bitnami/mariadb:latest
@@ -45,19 +46,16 @@ services:
       replicas: 3
       update_config:
         parallelism: 3
-        delay: 5s
+        delay: 10s
       restart_policy:
         condition: on-failure
-        delay: 5s
+        max_attempts: 3
+        window: 120s
         
   wordpress:
-    image: bitnami/wordpress:latest
-    labels:
-      kompose.service.type: nodeport
-    volumes:
-      - wp_data:/bitnami
+    image: wordpress:latest
     ports:
-      - 8080
+      - 8080:80
     environment:
       - WORDPRESS_DATABASE_HOST=mariadb-master
       - WORDPRESS_DATABASE_NAME=mariadb-master
@@ -74,10 +72,11 @@ services:
       replicas: 2
       update_config:
         parallelism: 2
-        delay: 5s
+        delay: 10s
       restart_policy:
         condition: on-failure
-        delay: 5s
+        max_attempts: 3
+        window: 120s
 
   proxy:
     image: dockercloud/haproxy
@@ -92,13 +91,6 @@ services:
     networks:
       - web
     deploy:
-      replicas: 1
-      update_config:
-        parallelism: 1
-        delay: 5s
-      restart_policy:
-        condition: on-failure
-        delay: 5s
       placement:
         constraints: [node.role == manager]
 
@@ -107,9 +99,5 @@ networks:
     driver: overlay
 
 volumes:
-  wp_data:
-    driver: local
   db_data:
     driver: local
-
-    
