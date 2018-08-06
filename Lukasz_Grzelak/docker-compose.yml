@@ -4,7 +4,7 @@ services:
   mariadb-master:
     image: bitnami/mariadb:latest
     volumes:
-      - db_data:/bitnami
+      - /path/to/mariadb-persistence:/bitnami
     ports:
       - 3306
     environment:
@@ -52,8 +52,10 @@ services:
         
   wordpress:
     image: bitnami/wordpress:latest
+    labels:
+      kompose.service.type: nodeport
     volumes:
-      - wp_data:/bitnami
+      - /path/to/wordpress-persistence:/bitnami
     ports:
       - 8080
     environment:
@@ -103,9 +105,3 @@ services:
 networks:
   web:
     driver: overlay
-
-volumes:
-  db_data:
-    driver: local
-  wp_data:
-    driver: local
