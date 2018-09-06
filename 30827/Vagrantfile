@@ -1,0 +1,40 @@
+$script = <<SCRIPT
+#!/bin/bash
+sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable"
+sudo apt-get update
+sudo apt-get upgrade -y
+sudo apt-get install docker-ce -y
+sudo docker swarm init
+sudo docker stack deploy -c /vagrant/docker-compose.yml test 
+SCRIPT
+
+#ustawienia parametrów VM
+
+Vagrant.configure("2") do |config|
+#Użycie wybranego boxa z API Vagranta
+config.vm.box = "ubuntu/xenial64"
+#konfiguracja portów, przekierowanie portów https apache z maszny wirtualnej na deweloperska. 
+#Host to port dewelopera a Guest maszyny wirtualnej
+config.vm.network :forwarded_port, host:8080, guest:8080
+config.vm.network :forwarded_port, host:8081, guest:8081
+config.vm.network :forwarded_port, host:8082, guest:8082
+config.vm.network :forwarded_port, host:8000, guest:8000
+
+
+#virtualbox provider
+config.vm.provider :virtualbox do |v|
+    v.name = "docker123s"
+	#wirtualna pamięć
+    v.memory = 4096
+	#wirtualny procesor
+    v.cpus = 2
+  end
+  
+  #Tworzenie automatycznej konfiguracji dockera ppodczas jego tworzenia
+  config.vm.provision "shell", inline: $script   
+  #config.vm.provision :docker
+  #config.vm.provision :docker_compose, yml: ["/vagrant/docker-compose.yml"], rebuild: true, run: "always"
+end
+ 

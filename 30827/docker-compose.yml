@@ -1,0 +1,65 @@
+version: '3.3'
+services:
+  db:
+      image: mysql:5.7
+      volumes:
+          - db_data:/var/lib/mysql   
+      restart: always
+      networks:
+          - proxy
+      environment:
+        MYSQL_ROOT_PASSWORD: somewordpress
+        MYSQL_DATABASE: wordpress
+        MYSQL_USER: wordpress
+        MYSQL_PASSWORD: wordpress
+      deploy:
+        replicas: 2
+        update_config:
+            parallelism: 1
+            delay: 10s
+        restart_policy:
+            condition: any
+
+  wordpress:
+     depends_on:
+          - db
+     links:
+          - db:mysql
+     image: wordpress:latest
+     restart: always
+     networks:
+          - proxy
+     environment:
+        WORDPRESS_DB_HOST: db:3306
+        WORDPRESS_DB_USER: wordpress
+        WORDPRESS_DB_PASSWORD: wordpress
+     ports:
+       - "8000:80"
+     deploy:
+       replicas: 3
+       update_config:
+           parallelism: 1
+           delay: 10s
+       restart_policy:
+           condition: any
+     
+  proxy:
+        image: dockercloud/haproxy
+        depends_on:
+            - wordpress
+        environment:
+            - BALANCE=roundrobin
+            - ADDITIONAL_SERVICES=project_dir:wordpress
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+        ports: 
+            - 80:80
+        deploy:
+            placement:
+                constraints: [node.role == manager]
+networks:
+     proxy:
+          driver: bridge
+            
+volumes: 
+     db_data: 
