@@ -1,0 +1,103 @@
+version: '3'
+services:
+        
+  mariadb-master:
+    image: bitnami/mariadb:latest
+    volumes:
+      - db_data:/bitnami
+    ports:
+      - 3306:3306
+    environment:
+      - MARIADB_ROOT_PASSWORD=mariadbropass
+      - MARIADB_DATABASE=mariadb-master
+      - MARIADB_USER=mariadbuser
+      - MARIADB_PASSWORD=mariadbpass
+      - MARIADB_REPLICATION_MODE=master
+      - MARIADB_REPLICATION_USER=mariadbrepuser
+      - MARIADB_REPLICATION_PASSWORD=mariadbreppass
+    networks:
+      - web
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+        window: 120s
+      
+  mariadb-slave:
+    image: bitnami/mariadb:latest
+    ports:
+      - 3306
+    environment:
+      - MARIADB_REPLICATION_MODE=slave
+      - MARIADB_REPLICATION_USER=mariadbrepuser
+      - MARIADB_REPLICATION_PASSWORD=mariadbreppass
+      - MARIADB_MASTER_HOST=mariadb-master
+      - MARIADB_MASTER_PORT_NUMBER=3306
+      - MARIADB_MASTER_ROOT_PASSWORD=mariadbropass
+    depends_on:
+      - mariadb-master
+    networks:
+      - web
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 3
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+        window: 120s
+        
+  wordpress:
+    image: wordpress:latest
+    ports:
+      - 80
+    environment:
+      - WORDPRESS_DATABASE_HOST=mariadb-master
+      - WORDPRESS_DATABASE_NAME=mariadb-master
+      - WORDPRESS_DATABASE_USER=mariadbuser
+      - WORDPRESS_DATABASE_PASSWORD=mariadbpass
+      - SERVICE_PORTS=80
+      - MARIADB_HOST=mariadb-master
+      - MARIADB_PORT_NUMBER=3306
+    depends_on:
+      - mariadb-master
+    networks:
+      - web
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+        window: 120s
+
+  proxy:
+    image: dockercloud/haproxy
+    depends_on:
+      - wordpress
+    environment:
+      - BALANCE=leastconn
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 80:80
+    networks:
+      - web
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+networks:
+  web:
+    driver: overlay
+
+volumes:
+  db_data:
+    driver: local
