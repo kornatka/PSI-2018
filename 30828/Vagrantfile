@@ -1,0 +1,11 @@
+Vagrant.configure("2") do |vvv|
+  vvv.vm.box = "ubuntu/xenial64"
+  vvv.vm.provision "shell", path: "bashowisko.sh", privileged: true 
+  
+  vvv.vm.network :forwarded_port, guest: 6969, host: 6969
+  vvv.vm.network :forwarded_port, guest: 6970, host: 6970
+  vvv.vm.network :forwarded_port, guest: 8081, host: 8081
+  vvv.vm.network :forwarded_port, guest: 8082, host: 8082
+  
+  vvv.vm.provision "shell", path: "bashowisko.sh", privileged: true
+end

@@ -1,0 +1,123 @@
+version: '3'
+services:
+             
+    haproxy:
+        image: eeacms/haproxy
+        depends_on:
+            - wordpress_1
+            - wordpress_2
+        ports:
+            - 6969:5000
+            - 6970:1936
+        environment:
+            BALANCE: "roundrobin"
+            BACKENDS: "wordpress_1"
+            DNS_ENABLED: "true"
+            LOG_LEVEL: "info"
+        deploy:
+            placement:
+                constraints:
+                    - node.role == manager
+        networks:
+            - haproxy
+          
+    wordpress_1:
+        image: wordpress:php7.1-apache
+        ports:
+            - 8081:80
+        networks:
+            - haproxy
+            - db
+        depends_on:
+            - maria_master
+        deploy:
+            replicas: 1
+            update_config:
+                parallelism: 1
+                delay: 10s
+            restart_policy:
+                condition: on-failure
+        environment:
+            WORDPRESS_DB_HOST: "maria_master"
+            WORDPRESS_DB_NAME: "wordpress"
+            WORDPRESS_DB_USER: "wordpress"
+            WORDPRESS_DB_PASSWORD: "vvv"
+            
+    wordpress_2:
+        image: wordpress:php7.1-apache
+        ports:
+            - 8082:80
+        networks:
+            - haproxy
+            - db
+        depends_on:
+            - maria_master
+        deploy:
+            replicas: 1
+            update_config:
+                parallelism: 1
+                delay: 10s
+            restart_policy:
+                condition: on-failure
+        environment:
+            WORDPRESS_DB_HOST: "maria_master"
+            WORDPRESS_DB_NAME: "wordpress"
+            WORDPRESS_DB_USER: "wordpress"
+            WORDPRESS_DB_PASSWORD: "vvv"
+
+    maria_master:
+        image: hauptmedia/mariadb:10.1
+        hostname: maria_master
+        networks:
+            - db
+        ports:
+            - 13306:3306
+        environment:
+            MYSQL_ROOT_PASSWORD: "vvv"
+            REPLICATION_PASSWORD: "vvv"
+            MYSQL_DATABASE: "wordpress"
+            MYSQL_USER: "wordpress"
+            MYSQL_PASSWORD: "vvv"
+            GALERA: "On"
+            NODE_NAME: "maria_master"
+            CLUSTER_NAME: "maria_cluster"
+            CLUSTER_ADDRESS: "gcomm://"
+        command: --wsrep-new-cluster
+
+    maria_1:
+        image: hauptmedia/mariadb:10.1
+        hostname: maria_1
+        networks:
+            - db
+        links:
+            - maria_master
+        ports:
+            - 23306:3306
+        environment:
+            REPLICATION_PASSWORD: "vvv"
+            GALERA: "On"
+            NODE_NAME: "maria_1"
+            CLUSTER_NAME: "maria_cluster"
+            CLUSTER_ADDRESS: "gcomm://maria_master"
+          
+    maria_2:
+        image: hauptmedia/mariadb:10.1
+        hostname: maria_2
+        networks:
+            - db
+        links:
+            - maria_master
+        ports:
+            - 33306:3306
+        environment:
+            REPLICATION_PASSWORD: "vvv"
+            GALERA: "On"
+            NODE_NAME: "maria_2"
+            CLUSTER_NAME: "maria_cluster"
+            CLUSTER_ADDRESS: "gcomm://maria_master"
+
+networks:
+    haproxy:
+        driver: overlay
+    db:
+        driver: overlay
